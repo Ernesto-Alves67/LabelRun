@@ -1,19 +1,17 @@
 
 package com.scherzolambda.labelrun.navigation
 
-import androidx.compose.runtime.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.navigation.*
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.scherzolambda.labelrun.ui.screens.AuthScreen
+import com.scherzolambda.labelrun.ui.screens.HomeScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassCodeScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassEmailScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassResetScreen
@@ -79,11 +77,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 //        }
 
         // Home Screen TODO
-//        composable(AppRoute.Home.route) {
-//            HomeScreen(onLogoutClick = {
-//                navController.popBackStack(AppRoute.Login.route, inclusive = false)
-//            })
-//        }
+        composable(AppRoute.Home.route) {
+            HomeScreen(onLogoutClick = {
+                navController.popBackStack(AppRoute.Login.route, inclusive = false)
+            })
+        }
 
         // Recover Password - Email
         composable(AppRoute.RecoverEmail.route) {
