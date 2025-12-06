@@ -41,7 +41,8 @@ fun AuthScreen(
             .fillMaxSize()
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -88,7 +89,7 @@ fun AuthScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Botão Login
-        PrimaryButton(
+         PrimaryButton(
             text = "Entrar",
             onClick = onLoginClick
         )
