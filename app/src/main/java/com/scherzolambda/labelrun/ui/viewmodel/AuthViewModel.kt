@@ -10,9 +10,11 @@ import kotlinx.coroutines.launch
 
 /**
  * ViewModel para gerenciar o estado da autenticação
+ * @param authRepository Repositório de autenticação (injetável para testes)
  */
-class AuthViewModel : ViewModel() {
-    private val authRepository = AuthRepository()
+class AuthViewModel(
+    private val authRepository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
@@ -73,8 +75,8 @@ class AuthViewModel : ViewModel() {
  * Estados possíveis para o login
  */
 sealed class LoginState {
-    object Idle : LoginState()
-    object Loading : LoginState()
+    data object Idle : LoginState()
+    data object Loading : LoginState()
     data class Success(val token: String) : LoginState()
     data class Error(val message: String) : LoginState()
 }
@@ -83,8 +85,8 @@ sealed class LoginState {
  * Estados possíveis para o registro
  */
 sealed class RegisterState {
-    object Idle : RegisterState()
-    object Loading : RegisterState()
+    data object Idle : RegisterState()
+    data object Loading : RegisterState()
     data class Success(val message: String) : RegisterState()
     data class Error(val message: String) : RegisterState()
 }
