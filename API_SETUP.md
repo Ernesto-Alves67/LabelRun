@@ -110,6 +110,45 @@ Execute no dispositivo/emulador através do Android Studio.
 - ✅ Logging de eventos de conexão
 - ✅ Tratamento de erros
 
+## Testando a Conexão
+
+Após configurar a URL da API, você pode testar a conexão:
+
+### 1. Via Interface do App
+1. Abra o app no emulador/dispositivo
+2. Tente fazer login com credenciais de teste
+3. Observe os logs do Logcat para verificar a conexão
+
+### 2. Via Logs (adb logcat)
+```bash
+# Ver logs de rede
+adb logcat -s OkHttp AuthRepository
+
+# Ver todos os logs do app
+adb logcat | grep LabelRun
+```
+
+### 3. Verificar se o servidor está acessível
+```bash
+# Do emulador Android (10.0.2.2 aponta para localhost da máquina host)
+adb shell ping -c 3 10.0.2.2
+
+# Testar conexão HTTP
+adb shell curl -I http://10.0.2.2:8080/
+```
+
+### 4. Logs esperados em caso de sucesso
+```
+D/AuthRepository: Login bem-sucedido para: usuario@exemplo.com
+D/SocketManager: Socket conectado com sucesso
+```
+
+### 5. Logs esperados em caso de erro
+```
+E/AuthRepository: Erro no login: Email ou senha inválidos (código: 401)
+E/SocketManager: Erro ao conectar socket: Connection refused
+```
+
 ## Troubleshooting
 
 ### Erro: "Unable to resolve host"
@@ -157,6 +196,57 @@ adb logcat -s OkHttp SocketManager
 adb logcat -s LabelRun
 ```
 
+## Exemplo de Uso
+
+A aplicação já está configurada para usar a API automaticamente. Veja como funciona:
+
+### 1. AuthRepository
+O `AuthRepository` gerencia todas as chamadas de autenticação:
+
+```kotlin
+// Login
+val result = authRepository.login(email, password)
+if (result.isSuccess) {
+    val token = result.getOrNull()?.token
+    // Salvar token e navegar para home
+}
+
+// Registro
+val result = authRepository.register(email, password, username)
+if (result.isSuccess) {
+    // Usuário registrado com sucesso
+}
+```
+
+### 2. AuthViewModel
+O `AuthViewModel` gerencia o estado da UI:
+
+```kotlin
+// Fazer login
+authViewModel.login(email, password)
+
+// Observar estado
+val loginState by authViewModel.loginState.collectAsState()
+when (loginState) {
+    is LoginState.Loading -> { /* Mostrar loading */ }
+    is LoginState.Success -> { /* Navegar para home */ }
+    is LoginState.Error -> { /* Mostrar erro */ }
+}
+```
+
+### 3. Integração na UI
+A tela de login já está integrada com o ViewModel no `AppNavHost.kt`:
+
+```kotlin
+AuthScreen(
+    email = email,
+    password = password,
+    onLoginClick = {
+        authViewModel.login(email, password)
+    }
+)
+```
+
 ## Estrutura de Arquivos
 
 ```
@@ -167,12 +257,18 @@ app/src/main/java/com/scherzolambda/labelrun/
 │       ├── ApiService.kt      # Definição dos endpoints
 │       └── SocketManager.kt   # Gerenciador de WebSocket
 ├── data/
-│   └── model/
-│       ├── LoginRequest.kt
-│       ├── LoginResponse.kt
-│       ├── RegisterRequest.kt
-│       └── DefaultResponse.kt
-└── ...
+│   ├── model/
+│   │   ├── LoginRequest.kt
+│   │   ├── LoginResponse.kt
+│   │   ├── RegisterRequest.kt
+│   │   └── DefaultResponse.kt
+│   └── repository/
+│       └── AuthRepository.kt  # Repositório de autenticação
+├── ui/
+│   └── viewmodel/
+│       └── AuthViewModel.kt   # ViewModel de autenticação
+└── navigation/
+    └── AppNavHost.kt          # Navegação integrada com API
 ```
 
 ## Segurança
