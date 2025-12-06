@@ -1,0 +1,13 @@
+## Configuração Local do Projeto LabelRun
+## Copie este arquivo para local.properties e configure as variáveis abaixo
+
+# URL base da API
+# Para desenvolvimento local, use:
+# - Emulador Android: http://10.0.2.2:8080/
+# - Dispositivo físico na mesma rede: http://SEU_IP_LOCAL:8080/
+# - Produção: https://sua-api.com/
+API_BASE_URL=http://10.0.2.2:8080/
+
+## Configuração do SDK Android (gerado automaticamente pelo Android Studio)
+## Descomente e ajuste o caminho do SDK conforme necessário
+# sdk.dir=/path/to/android/sdk

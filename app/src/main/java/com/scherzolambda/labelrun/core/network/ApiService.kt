@@ -1,4 +1,4 @@
-package com.scherzolambda.labelrun.network
+package com.scherzolambda.labelrun.core.network
 
 import com.scherzolambda.labelrun.data.model.DefaultResponse
 import com.scherzolambda.labelrun.data.model.LoginRequest
