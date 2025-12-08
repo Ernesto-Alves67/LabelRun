@@ -16,6 +16,20 @@ class AuthViewModel(
     private val authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
 
+    // Estados de formulários (movidos para o ViewModel)
+    private val _email = MutableStateFlow("")
+    val email: StateFlow<String> = _email.asStateFlow()
+
+    private val _password = MutableStateFlow("")
+    val password: StateFlow<String> = _password.asStateFlow()
+
+    private val _confirmPassword = MutableStateFlow("")
+    val confirmPassword: StateFlow<String> = _confirmPassword.asStateFlow()
+
+    private val _code = MutableStateFlow("")
+    val code: StateFlow<String> = _code.asStateFlow()
+
+    // Existing states
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
@@ -68,6 +82,23 @@ class AuthViewModel(
      */
     fun resetRegisterState() {
         _registerState.value = RegisterState.Idle
+    }
+
+    // Setters para campos de formulário
+    fun setEmail(value: String) {
+        _email.value = value
+    }
+
+    fun setPassword(value: String) {
+        _password.value = value
+    }
+
+    fun setConfirmPassword(value: String) {
+        _confirmPassword.value = value
+    }
+
+    fun setCode(value: String) {
+        _code.value = value
     }
 }
 

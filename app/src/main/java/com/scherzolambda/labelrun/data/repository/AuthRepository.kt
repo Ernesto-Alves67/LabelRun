@@ -6,6 +6,7 @@ import com.scherzolambda.labelrun.data.model.DefaultResponse
 import com.scherzolambda.labelrun.data.model.LoginRequest
 import com.scherzolambda.labelrun.data.model.LoginResponse
 import com.scherzolambda.labelrun.data.model.RegisterRequest
+import com.scherzolambda.labelrun.data.service.AuthService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -13,7 +14,7 @@ import kotlinx.coroutines.withContext
  * Repository para gerenciar operações de autenticação com a API
  */
 class AuthRepository {
-    private val apiService = ApiClient.instance
+    private val apiService = ApiClient.getRetrofitInstance().create(AuthService::class.java)
     private val TAG = "AuthRepository"
 
     /**

@@ -1,4 +1,4 @@
-package com.scherzolambda.labelrun.core.network
+package com.scherzolambda.labelrun.data.service
 
 import com.scherzolambda.labelrun.data.model.DefaultResponse
 import com.scherzolambda.labelrun.data.model.LoginRequest
@@ -8,7 +8,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface ApiService {
+interface AuthService {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 

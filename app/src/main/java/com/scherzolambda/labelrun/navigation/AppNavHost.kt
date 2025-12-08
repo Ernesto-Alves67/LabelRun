@@ -1,4 +1,3 @@
-
 package com.scherzolambda.labelrun.navigation
 
 import android.widget.Toast
@@ -6,9 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -20,6 +16,7 @@ import com.scherzolambda.labelrun.ui.screens.HomeScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassCodeScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassEmailScreen
 import com.scherzolambda.labelrun.ui.screens.recover.RecoverPassResetScreen
+import com.scherzolambda.labelrun.ui.screens.register.RegisterScreen
 import com.scherzolambda.labelrun.ui.viewmodel.AuthViewModel
 import com.scherzolambda.labelrun.ui.viewmodel.LoginState
 
@@ -39,13 +36,14 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     authViewModel: AuthViewModel = viewModel()
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
-    var code by rememberSaveable { mutableStateOf("") }
-
     val context = LocalContext.current
     val loginState by authViewModel.loginState.collectAsState()
+
+    // Coleta valores do ViewModel
+    val email by authViewModel.email.collectAsState()
+    val password by authViewModel.password.collectAsState()
+    val confirmPassword by authViewModel.confirmPassword.collectAsState()
+    val code by authViewModel.code.collectAsState()
 
     NavHost(navController = navController, startDestination = AppRoute.Login.route) {
 
@@ -71,9 +69,9 @@ fun AppNavHost(
 
             AuthScreen(
                 email = email,
-                onEmailChange = { email = it },
+                onEmailChange = { authViewModel.setEmail(it) },
                 password = password,
-                onPasswordChange = { password = it },
+                onPasswordChange = { authViewModel.setPassword(it) },
                 onLoginClick = {
                     if (email.isNotBlank() && password.isNotBlank()) {
                         authViewModel.login(email, password)
@@ -94,22 +92,24 @@ fun AppNavHost(
         }
 
         // Register Screen TODO
-//        composable(AppRoute.Register.route) {
-//            RegisterScreen(
-//                email = email,
-//                onEmailChange = { email = it },
-//                password = password,
-//                onPasswordChange = { password = it },
-//                confirmPassword = confirmPassword,
-//                onConfirmPasswordChange = { confirmPassword = it },
-//                onRegisterClick = {
-//                    navController.navigate(AppRoute.Home.route)
-//                },
-//                onBackClick = {
-//                    navController.popBackStack()
-//                }
-//            )
-//        }
+        composable(AppRoute.Register.route) {
+            RegisterScreen(
+                email = email,
+                onEmailChange = { authViewModel.setEmail(it) },
+                password = password,
+                onPasswordChange = { authViewModel.setPassword(it) },
+                confirmPassword = confirmPassword,
+                onConfirmPasswordChange = { authViewModel.setConfirmPassword(it) },
+                onRegisterClick = {
+                    // Use os valores do ViewModel para registrar
+                    authViewModel.register(email, password, "")
+                    navController.navigate(AppRoute.Home.route)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
 
         // Home Screen TODO
         composable(AppRoute.Home.route) {
@@ -122,8 +122,9 @@ fun AppNavHost(
         composable(AppRoute.RecoverEmail.route) {
             RecoverPassEmailScreen(
                 email = email,
-                onEmailChange = { email = it },
+                onEmailChange = { authViewModel.setEmail(it) },
                 onContinueClick = {
+                    // normalmente aqui chamaria API para enviar código
                     navController.navigate(AppRoute.RecoverCode.route)
                 },
                 onBackClick = {
@@ -136,7 +137,7 @@ fun AppNavHost(
         composable(AppRoute.RecoverCode.route) {
             RecoverPassCodeScreen(
                 code = code,
-                onCodeChange = { code = it },
+                onCodeChange = { authViewModel.setCode(it) },
                 onConfirmClick = {
                     navController.navigate(AppRoute.RecoverReset.route)
                 },
@@ -151,8 +152,8 @@ fun AppNavHost(
             RecoverPassResetScreen(
                 newPassword = password,
                 confirmPassword = confirmPassword,
-                onNewPasswordChange = { password = it },
-                onConfirmPasswordChange = { confirmPassword = it },
+                onNewPasswordChange = { authViewModel.setPassword(it) },
+                onConfirmPasswordChange = { authViewModel.setConfirmPassword(it) },
                 onConfirmClick = {
                     navController.navigate(AppRoute.Login.route) {
                         popUpTo(AppRoute.Login.route) { inclusive = true }

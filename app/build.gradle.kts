@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android)
+    kotlin("kapt")
 }
 
 android {
@@ -17,16 +19,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Configuração da URL base da API a partir do local.properties
-        val properties = org.jetbrains.kotlin.konan.properties.Properties()
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            properties.load(localPropertiesFile.inputStream())
-        }
-        
-        // URL padrão para desenvolvimento se não estiver configurada
-        val apiBaseUrl = properties.getProperty("API_BASE_URL", "http://10.0.2.2:8080/")
-        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -36,6 +28,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        getByName("debug") {
+            isDebuggable =  true
+
+//            applicationIdSuffix = ".debug"
+//            versionNameSuffix = "-debug"
+
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
     compileOptions {
@@ -64,7 +65,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.compose) // ou versão mais recente
-
+    implementation("com.google.dagger:hilt-android:2.51")
+    kapt("com.google.dagger:hilt-android-compiler:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -73,6 +76,8 @@ dependencies {
 
     // Cliente Socket.IO
     implementation("io.socket:socket.io-client:2.0.1")
+    implementation(libs.androidx.datastore.core)
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

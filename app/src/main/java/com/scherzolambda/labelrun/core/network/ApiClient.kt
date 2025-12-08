@@ -1,44 +1,62 @@
 package com.scherzolambda.labelrun.core.network
 
-import com.google.gson.GsonBuilder
+import com.scherzolambda.labelrun.core.config.DataStoreHelper
+import com.scherzolambda.labelrun.core.config.EnvConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
-object ApiClient {
-    // URL base da API - configure no local.properties como API_BASE_URL
-    // Exemplo: API_BASE_URL=http://192.168.1.100:8080/
-    private const val BASE_URL = BuildConfig.API_BASE_URL
+class ApiClient private constructor() {
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BODY
-        } else {
-            HttpLoggingInterceptor.Level.NONE
+    companion object {
+        private lateinit var retrofit: Retrofit
+        private var accessToken: String? = getAccessTokenSync()
+        private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        init {
+            coroutineScope.launch {
+                DataStoreHelper.getAccessTokenFlow().collect { token ->
+                    accessToken = token
+                }
+            }
         }
-    }
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .build()
+        fun getRetrofitInstance(): Retrofit {
+            val client = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val requestBuilder = chain.request().newBuilder()
+                        .header("Content-Type", "application/json")
+                        .header("X-API-Key", EnvConfig.get("API_SECRET_KEY"))
+                        .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36")
 
-    private val gson = GsonBuilder()
-        .setLenient()
-        .create()
+                    // Adiciona o token ao header, se disponível
+                    accessToken?.let { token ->
+                        requestBuilder.header("Authorization", "Bearer $token")
+                    }
 
-    val instance: ApiService by lazy {
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
+                    chain.proceed(requestBuilder.build())
+                }
+                .build()
 
-        retrofit.create(ApiService::class.java)
+            if (!::retrofit.isInitialized) {
+                retrofit = Retrofit.Builder()
+                    .baseUrl(EnvConfig.get("BASE_URL"))
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+            }
+            return retrofit
+        }
+
+
+        fun getAccessTokenSync(): String? = runBlocking {
+            DataStoreHelper.getAccessTokenFlow().firstOrNull()
+        }
     }
 }

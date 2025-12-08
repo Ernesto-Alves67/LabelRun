@@ -1,6 +1,7 @@
 package com.scherzolambda.labelrun.core.network
 
 import android.util.Log
+import com.scherzolambda.labelrun.core.config.EnvConfig
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -9,10 +10,9 @@ import java.net.URISyntaxException
 object SocketManager {
     private var mSocket: Socket? = null
     private const val TAG = "SocketManager"
-    
-    // URL do servidor - configure no local.properties como API_BASE_URL
+
     // O Socket.IO usará a mesma URL base da API
-    private const val SERVER_URL = BuildConfig.API_BASE_URL
+    private var SERVER_URL = EnvConfig.get("API_BASE_URL")
 
     fun getSocket(): Socket? {
         if (mSocket == null) {
