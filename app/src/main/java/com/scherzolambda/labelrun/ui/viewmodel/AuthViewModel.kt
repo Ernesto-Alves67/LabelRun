@@ -2,6 +2,7 @@ package com.scherzolambda.labelrun.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scherzolambda.labelrun.core.config.DataStoreHelper
 import com.scherzolambda.labelrun.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,10 +18,10 @@ class AuthViewModel(
 ) : ViewModel() {
 
     // Estados de formulários (movidos para o ViewModel)
-    private val _email = MutableStateFlow("")
+    private val _email = MutableStateFlow("teste@email.com")
     val email: StateFlow<String> = _email.asStateFlow()
 
-    private val _password = MutableStateFlow("")
+    private val _password = MutableStateFlow("123")
     val password: StateFlow<String> = _password.asStateFlow()
 
     private val _confirmPassword = MutableStateFlow("")
@@ -45,8 +46,9 @@ class AuthViewModel(
 
             val result = authRepository.login(email, password)
             _loginState.value = if (result.isSuccess) {
-                val token = result.getOrNull()?.token
-                LoginState.Success(token ?: "")
+                val token = result.getOrNull()?.token ?: ""
+                setAuthData(token)
+                LoginState.Success
             } else {
                 LoginState.Error(result.exceptionOrNull()?.message ?: "Erro desconhecido")
             }
@@ -68,6 +70,10 @@ class AuthViewModel(
                 RegisterState.Error(result.exceptionOrNull()?.message ?: "Erro desconhecido")
             }
         }
+    }
+
+    fun logout() {
+        clearAuthData()
     }
 
     /**
@@ -100,6 +106,20 @@ class AuthViewModel(
     fun setCode(value: String) {
         _code.value = value
     }
+
+    private fun setAuthData(token: String) {
+        viewModelScope.launch {
+            DataStoreHelper.setAccessToken(token)
+            DataStoreHelper.setIsAuthenticated(true)
+        }
+    }
+
+    private fun clearAuthData() {
+        viewModelScope.launch {
+            DataStoreHelper.setAccessToken("")
+            DataStoreHelper.setIsAuthenticated(false)
+        }
+    }
 }
 
 /**
@@ -108,7 +128,7 @@ class AuthViewModel(
 sealed class LoginState {
     data object Idle : LoginState()
     data object Loading : LoginState()
-    data class Success(val token: String) : LoginState()
+    data object Success : LoginState()
     data class Error(val message: String) : LoginState()
 }
 

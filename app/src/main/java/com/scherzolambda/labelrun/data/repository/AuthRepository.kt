@@ -26,7 +26,7 @@ class AuthRepository {
     suspend fun login(email: String, password: String): Result<LoginResponse> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = LoginRequest(email = email, pass = password)
+                val request = LoginRequest(email = email, passwd = password)
                 val response = apiService.login(request)
 
                 if (response.isSuccessful && response.body() != null) {
@@ -39,7 +39,7 @@ class AuthRepository {
                         500 -> "Erro no servidor. Tente novamente mais tarde"
                         else -> "Erro ao fazer login: ${response.code()}"
                     }
-                    Log.e(TAG, "Erro no login: $errorMessage (código: ${response.code()})")
+                    Log.e(TAG, "Erro no login: ${response.message()} (código: ${response.code()})")
                     Result.failure(Exception(errorMessage))
                 }
             } catch (e: Exception) {

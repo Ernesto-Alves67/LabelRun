@@ -32,7 +32,7 @@ class ApiClient private constructor() {
                 .addInterceptor { chain ->
                     val requestBuilder = chain.request().newBuilder()
                         .header("Content-Type", "application/json")
-                        .header("X-API-Key", EnvConfig.get("API_SECRET_KEY"))
+//                        .header("X-API-Key", EnvConfig.get("API_SECRET_KEY"))
                         .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36")
 
                     // Adiciona o token ao header, se disponível

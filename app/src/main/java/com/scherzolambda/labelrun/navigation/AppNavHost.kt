@@ -49,7 +49,6 @@ fun AppNavHost(
 
         // Login Screen
         composable(AppRoute.Login.route) {
-            // Observa o estado do login
             LaunchedEffect(loginState) {
                 when (val state = loginState) {
                     is LoginState.Success -> {
@@ -114,6 +113,7 @@ fun AppNavHost(
         // Home Screen TODO
         composable(AppRoute.Home.route) {
             HomeScreen(onLogoutClick = {
+                authViewModel.logout()
                 navController.popBackStack(AppRoute.Login.route, inclusive = false)
             })
         }
@@ -124,7 +124,6 @@ fun AppNavHost(
                 email = email,
                 onEmailChange = { authViewModel.setEmail(it) },
                 onContinueClick = {
-                    // normalmente aqui chamaria API para enviar código
                     navController.navigate(AppRoute.RecoverCode.route)
                 },
                 onBackClick = {

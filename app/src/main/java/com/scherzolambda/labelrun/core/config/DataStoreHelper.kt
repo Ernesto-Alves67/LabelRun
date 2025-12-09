@@ -17,6 +17,8 @@ object DataStoreHelper {
     private val FILE_LOADED_KEY = booleanPreferencesKey("is_file_loaded")
     private val FISRT_ACCESS_KEY = booleanPreferencesKey("if_first_access")
     private val ACCESS_TOKEN_KEY = stringPreferencesKey("acess_token")
+
+    private val IS_AUHENTICATED_KEY = booleanPreferencesKey("is_authenticated")
     private val THEME_KEY = stringPreferencesKey("theme")
     private val WEEK_UI_KRY = booleanPreferencesKey("show_empty_weekly_cell")
     private val DAY_UI_KEY = booleanPreferencesKey("show_empty_daily_cell")
@@ -45,6 +47,15 @@ object DataStoreHelper {
     }
     fun isFirstAccessFlow(): Flow<Boolean> =
         dataStore.data.map { it[FISRT_ACCESS_KEY] ?: true }
+
+    fun setIsAuthenticatedFlow(): Flow<Boolean> =
+        dataStore.data.map { it[IS_AUHENTICATED_KEY] ?: true  }
+
+    suspend fun setIsAuthenticated(value: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[IS_AUHENTICATED_KEY] = value
+        }
+    }
 
     /** Define se é o primeiro acesso do usuário
      *  Quando True, registra dados. Quando False, atualiza.
