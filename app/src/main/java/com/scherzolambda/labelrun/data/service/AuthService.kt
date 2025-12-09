@@ -1,4 +1,4 @@
-package com.scherzolambda.labelrun.network
+package com.scherzolambda.labelrun.data.service
 
 import com.scherzolambda.labelrun.data.model.DefaultResponse
 import com.scherzolambda.labelrun.data.model.LoginRequest
@@ -8,11 +8,11 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface ApiService {
-    @POST("api/auth/login")
+interface AuthService {
+    @POST("/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @POST("api/auth/register")
+    @POST("/auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<DefaultResponse>
 
     // Adicione outros endpoints da sua API aqui

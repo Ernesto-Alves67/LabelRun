@@ -11,3 +11,4 @@
 .externalNativeBuild
 key.properties
 .vscode/
+*.properties

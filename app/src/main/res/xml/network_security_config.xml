@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 
+        Configuração para desenvolvimento: permite tráfego HTTP não criptografado
+        IMPORTANTE: Em produção, remova esta configuração e use apenas HTTPS
+    -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- 
+        Para produção, use uma configuração como esta:
+        <domain-config cleartextTrafficPermitted="false">
+            <domain includeSubdomains="true">sua-api-segura.com</domain>
+        </domain-config>
+    -->
+</network-security-config>

@@ -1,0 +1,285 @@
+# Configuração da API - LabelRun
+
+Este documento descreve como configurar a conexão com a API no aplicativo LabelRun.
+
+## Pré-requisitos
+
+1. Servidor da API rodando e acessível
+2. Android Studio instalado
+3. Emulador ou dispositivo físico configurado
+
+## Configuração Rápida
+
+### 1. Configure a URL da API
+
+Copie o arquivo de exemplo e configure a URL:
+
+```bash
+cp local.properties.example local.properties
+```
+
+Edite o arquivo `local.properties` e configure a `API_BASE_URL`:
+
+```properties
+# Para emulador Android (localhost da máquina host)
+API_BASE_URL=http://10.0.2.2:8080/
+
+# Para dispositivo físico na mesma rede Wi-Fi
+API_BASE_URL=http://192.168.1.XXX:8080/
+
+# Para servidor de produção
+API_BASE_URL=https://api.seudominio.com/
+```
+
+### 2. Descubra o IP local (para dispositivo físico)
+
+**Windows:**
+```cmd
+ipconfig
+```
+Procure por "Endereço IPv4" na conexão ativa.
+
+**Linux/Mac:**
+```bash
+ifconfig
+# ou
+ip addr show
+```
+Procure pelo endereço IP da interface de rede ativa (geralmente começa com 192.168.x.x).
+
+### 3. Compile e Execute
+
+Após configurar a URL, compile o projeto:
+
+```bash
+./gradlew build
+```
+
+Execute no dispositivo/emulador através do Android Studio.
+
+## Endpoints Disponíveis
+
+### Autenticação
+
+#### Login
+- **POST** `/api/auth/login`
+- Body:
+```json
+{
+  "email": "usuario@exemplo.com",
+  "pass": "senha123"
+}
+```
+- Resposta:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### Registro
+- **POST** `/api/auth/register`
+- Body:
+```json
+{
+  "email": "usuario@exemplo.com",
+  "pass": "senha123",
+  "name": "Nome do Usuário"
+}
+```
+- Resposta:
+```json
+{
+  "success": true,
+  "message": "Usuário registrado com sucesso"
+}
+```
+
+## Recursos Implementados
+
+### ApiClient
+- ✅ Configuração via BuildConfig
+- ✅ Logging de requisições (apenas em DEBUG)
+- ✅ Timeouts configurados (30s)
+- ✅ Retry automático em falhas de conexão
+- ✅ Conversor JSON (Gson)
+
+### SocketManager
+- ✅ Configuração via BuildConfig
+- ✅ Reconnection automática (até 5 tentativas)
+- ✅ Logging de eventos de conexão
+- ✅ Tratamento de erros
+
+## Testando a Conexão
+
+Após configurar a URL da API, você pode testar a conexão:
+
+### 1. Via Interface do App
+1. Abra o app no emulador/dispositivo
+2. Tente fazer login com credenciais de teste
+3. Observe os logs do Logcat para verificar a conexão
+
+### 2. Via Logs (adb logcat)
+```bash
+# Ver logs de rede
+adb logcat -s OkHttp AuthRepository
+
+# Ver todos os logs do app
+adb logcat | grep LabelRun
+```
+
+### 3. Verificar se o servidor está acessível
+```bash
+# Do emulador Android (10.0.2.2 aponta para localhost da máquina host)
+adb shell ping -c 3 10.0.2.2
+
+# Testar conexão HTTP
+adb shell curl -I http://10.0.2.2:8080/
+```
+
+### 4. Logs esperados em caso de sucesso
+```
+D/AuthRepository: Login bem-sucedido para: usuario@exemplo.com
+D/SocketManager: Socket conectado com sucesso
+```
+
+### 5. Logs esperados em caso de erro
+```
+E/AuthRepository: Erro no login: Email ou senha inválidos (código: 401)
+E/SocketManager: Erro ao conectar socket: Connection refused
+```
+
+## Troubleshooting
+
+### Erro: "Unable to resolve host"
+- **Causa**: URL da API não configurada ou inacessível
+- **Solução**: Verifique se a `API_BASE_URL` está correta no `local.properties` e se o servidor está rodando
+
+### Erro: "Connection refused"
+- **Causa**: Servidor não está rodando ou firewall bloqueando
+- **Solução**: 
+  - Verifique se o servidor está ativo
+  - Verifique configurações de firewall
+  - Para dispositivo físico, certifique-se de estar na mesma rede Wi-Fi
+
+### Erro: "Network Security Configuration"
+- **Causa**: Android não permite HTTP em produção por padrão
+- **Solução**: Use HTTPS em produção ou configure `network_security_config.xml` para desenvolvimento
+
+### Socket não conecta
+- **Causa**: URL do Socket.IO incorreta ou servidor não suporta WebSocket
+- **Solução**: 
+  - Verifique se o servidor Socket.IO está rodando na mesma porta
+  - Verifique logs com `adb logcat -s SocketManager`
+
+## Próximos Passos
+
+1. Implementar armazenamento seguro do token (SharedPreferences criptografado)
+2. Adicionar interceptor de autenticação para adicionar token automaticamente
+3. Implementar refresh token
+4. Adicionar health check endpoint
+5. Implementar cache de requisições
+6. Adicionar tratamento específico de erros HTTP (401, 403, 500, etc)
+
+## Logs e Debugging
+
+Para ver os logs de rede:
+
+```bash
+# Ver todos os logs
+adb logcat
+
+# Ver apenas logs de rede
+adb logcat -s OkHttp SocketManager
+
+# Ver logs do app
+adb logcat -s LabelRun
+```
+
+## Exemplo de Uso
+
+A aplicação já está configurada para usar a API automaticamente. Veja como funciona:
+
+### 1. AuthRepository
+O `AuthRepository` gerencia todas as chamadas de autenticação:
+
+```kotlin
+// Login
+val result = authRepository.login(email, password)
+if (result.isSuccess) {
+    val token = result.getOrNull()?.token
+    // Salvar token e navegar para home
+}
+
+// Registro
+val result = authRepository.register(email, password, username)
+if (result.isSuccess) {
+    // Usuário registrado com sucesso
+}
+```
+
+### 2. AuthViewModel
+O `AuthViewModel` gerencia o estado da UI:
+
+```kotlin
+// Fazer login
+authViewModel.login(email, password)
+
+// Observar estado
+val loginState by authViewModel.loginState.collectAsState()
+when (loginState) {
+    is LoginState.Loading -> { /* Mostrar loading */ }
+    is LoginState.Success -> { /* Navegar para home */ }
+    is LoginState.Error -> { /* Mostrar erro */ }
+}
+```
+
+### 3. Integração na UI
+A tela de login já está integrada com o ViewModel no `AppNavHost.kt`:
+
+```kotlin
+AuthScreen(
+    email = email,
+    password = password,
+    onLoginClick = {
+        authViewModel.login(email, password)
+    }
+)
+```
+
+## Estrutura de Arquivos
+
+```
+app/src/main/java/com/scherzolambda/labelrun/
+├── core/
+│   └── network/
+│       ├── ApiClient.kt       # Cliente Retrofit configurado
+│       ├── ApiService.kt      # Definição dos endpoints
+│       └── SocketManager.kt   # Gerenciador de WebSocket
+├── data/
+│   ├── model/
+│   │   ├── LoginRequest.kt
+│   │   ├── LoginResponse.kt
+│   │   ├── RegisterRequest.kt
+│   │   └── DefaultResponse.kt
+│   └── repository/
+│       └── AuthRepository.kt  # Repositório de autenticação
+├── ui/
+│   └── viewmodel/
+│       └── AuthViewModel.kt   # ViewModel de autenticação
+└── navigation/
+    └── AppNavHost.kt          # Navegação integrada com API
+```
+
+## Segurança
+
+⚠️ **IMPORTANTE:**
+- Nunca commite o arquivo `local.properties` (já está no .gitignore)
+- Use HTTPS em produção
+- Não armazene credenciais hardcoded no código
+- Implemente armazenamento seguro de tokens
+- Configure ProGuard/R8 para ofuscar código em release
+
+## Suporte
+
+Para problemas ou dúvidas, consulte a documentação da API ou entre em contato com a equipe de desenvolvimento.
